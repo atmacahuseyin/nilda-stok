@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="hamur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E7B26B"/><stop offset="1" stop-color="#B06C2C"/>
+    </linearGradient>
+    <linearGradient id="krema" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF6B5"/><stop offset="1" stop-color="#F3D23E"/>
+    </linearGradient>
+    <radialGradient id="limon" cx=".38" cy=".35" r=".75">
+      <stop offset="0" stop-color="#FFEB6B"/><stop offset="1" stop-color="#EDBE10"/>
+    </radialGradient>
+  </defs>
+  <circle cx="64" cy="64" r="63" fill="#FFF5D3"/>
+
+  <!-- Arkada bütün limon ve yaprak -->
+  <g transform="rotate(-24 88 40)">
+    <path d="M108 33c9-8 17-6 18-3-4 7-11 9-18 3z" fill="#5E9B2A"/>
+    <path d="M108 33c6-2 11-3 16-3" stroke="#3F7418" stroke-width="1.4" fill="none"/>
+    <ellipse cx="88" cy="40" rx="23" ry="17" fill="url(#limon)"/>
+    <path d="M64 40c-3-2-5-1-6 0 1 1 3 2 6 0z" fill="#E2AE0A"/>
+    <path d="M111 40c3-2 5-1 6 0-1 1-3 2-6 0z" fill="#E2AE0A"/>
+    <ellipse cx="80" cy="33" rx="8" ry="3.6" fill="#FFF7B8" opacity=".75"/>
+    <g fill="#E2AE0A" opacity=".55"><circle cx="95" cy="46" r=".9"/><circle cx="100" cy="40" r=".9"/><circle cx="90" cy="50" r=".9"/><circle cx="76" cy="45" r=".9"/></g>
+  </g>
+
+  <!-- Ekler -->
+  <ellipse cx="58" cy="99" rx="46" ry="5" fill="#2C1A14" opacity=".1"/>
+  <rect x="12" y="66" width="92" height="30" rx="15" fill="url(#hamur)"/>
+  <path d="M22 90h72" stroke="#9A5A22" stroke-width="2" stroke-linecap="round" opacity=".35"/>
+  <path d="M16 77c0-12 12-14 17-14h54c5 0 17 2 17 14-4 4-8 2-10 0-3 4-8 4-11 0-3 4-8 4-11 0-3 4-8 4-11 0-3 4-8 4-11 0-3 4-8 4-11 0-3 4-8 4-11 0-2 2-6 4-10 0z" fill="url(#krema)"/>
+  <path d="M30 67h44" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  <!-- Limon kabuğu rendesi -->
+  <g fill="#E5A100">
+    <rect x="34" y="70" width="5" height="1.8" rx=".9" transform="rotate(-20 36 71)"/>
+    <rect x="48" y="66" width="5" height="1.8" rx=".9" transform="rotate(15 50 67)"/>
+    <rect x="61" y="71" width="5" height="1.8" rx=".9" transform="rotate(-35 63 72)"/>
+    <rect x="74" y="67" width="5" height="1.8" rx=".9" transform="rotate(25 76 68)"/>
+    <rect x="86" y="72" width="5" height="1.8" rx=".9" transform="rotate(-10 88 73)"/>
+    <rect x="25" y="74" width="4" height="1.6" rx=".8" transform="rotate(30 27 75)"/>
+  </g>
+
+  <!-- Önde limon dilimi -->
+  <g transform="translate(97 94)">
+    <circle r="19" fill="#EDBE10"/>
+    <circle r="16" fill="#FFF8C9"/>
+    <circle r="13.5" fill="#FCE25F"/>
+    <g stroke="#FFF8C9" stroke-width="2.2" stroke-linecap="round">
+      <path d="M0-13V13"/><path d="M-13 0H13"/><path d="M-9.5-9.5 9.5 9.5"/><path d="M9.5-9.5-9.5 9.5"/>
+    </g>
+    <circle r="2.6" fill="#FFF8C9"/>
+  </g>
+</svg>
