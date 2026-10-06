@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="104" fill="#2C1A14"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#D4A373" stroke-width="10" stroke-dasharray="4 18" stroke-linecap="round"/>
+  <!-- Profiterol kulesi -->
+  <ellipse cx="256" cy="372" rx="150" ry="22" fill="#D4A373"/>
+  <circle cx="186" cy="320" r="52" fill="#F3E1C7"/>
+  <circle cx="326" cy="320" r="52" fill="#F3E1C7"/>
+  <circle cx="256" cy="312" r="56" fill="#FAEDCD"/>
+  <circle cx="220" cy="236" r="50" fill="#F3E1C7"/>
+  <circle cx="292" cy="236" r="50" fill="#FAEDCD"/>
+  <circle cx="256" cy="168" r="48" fill="#FAEDCD"/>
+  <path d="M150 300 q30 -40 60 -10 q20 -60 92 -40 q50 -70 100 20 q-40 30 -60 10 q-40 30 -80 0 q-50 40 -112 20z" fill="#5A3322"/>
+  <path d="M190 210 q30 -50 66 -50 q36 0 66 50 q-30 18 -66 6 q-36 12 -66 -6z" fill="#5A3322"/>
+  <circle cx="256" cy="112" r="20" fill="#D62839"/>
+  <path d="M256 92 q6 -18 20 -22" stroke="#5E9B2A" stroke-width="8" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,20 @@
+{
+  "name": "Profiterolcü Nilda – Stok ve Operasyon",
+  "short_name": "Nilda Stok",
+  "description": "Şube stok, fire ve operasyon takibi",
+  "lang": "tr-TR",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "theme_color": "#2C1A14",
+  "background_color": "#FAEDCD",
+  "categories": ["business", "productivity", "food"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

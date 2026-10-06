@@ -1,0 +1,94 @@
+<!doctype html>
+<!--
+  NİLDA STOK · PWA KABUĞU
+  Google Apps Script sayfaları Google'ın iframe'i içinde çalıştığı için tarayıcı
+  onları "yüklenebilir uygulama" olarak tanımaz. Bu küçük kabuk (GitHub Pages,
+  Netlify vb. ücretsiz bir HTTPS adresinde yayınlanır) manifest + service worker
+  sağlar ve GAS uygulamasını tam ekran açar. Böylece:
+    • Android/PC'de "Uygulamayı Yükle" çıkar, iPhone'da ana ekrana tam ekran eklenir
+    • 17:00 hatırlatması gerçek sistem bildirimi olarak gelebilir
+  TEK YAPILACAK: Aşağıdaki GAS_URL'yi kendi /exec adresinizle değiştirin.
+-->
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Nilda Stok</title>
+  <meta name="theme-color" content="#2C1A14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nilda Stok">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    html, body { margin: 0; height: 100%; background: #2C1A14; overflow: hidden; }
+    iframe { border: 0; display: block; width: 100%; height: 100vh; height: 100dvh; }
+    .yuzen { position: fixed; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 10;
+      font: 800 17px system-ui, sans-serif; padding: 14px 18px; border: 0; border-radius: 16px;
+      background: #D4A373; color: #2C1A14; box-shadow: 0 8px 24px rgba(0,0,0,.35); cursor: pointer; }
+    .yuzen + .yuzen { bottom: max(84px, calc(env(safe-area-inset-bottom) + 68px)); }
+  </style>
+</head>
+<body>
+  <iframe id="uygulama" title="Nilda Stok" allow="clipboard-write"></iframe>
+  <button id="yukleBtn" class="yuzen" hidden>📲 Uygulamayı Yükle</button>
+  <button id="bildirimBtn" class="yuzen" hidden>🔔 Bildirimlere İzin Ver</button>
+
+<script>
+  // ⬇️⬇️  KENDİ WEB UYGULAMASI ADRESİNİZ (Apps Script > Dağıt > Web uygulaması URL'si)
+  const GAS_URL = 'https://script.google.com/macros/s/BURAYA_DAGITIM_KIMLIGINIZ/exec';
+
+  if (GAS_URL.indexOf('BURAYA_') > -1) {
+    document.body.innerHTML = '<div style="min-height:100vh;display:grid;place-items:center;background:#FAEDCD;color:#2C1A14;' +
+      'font:700 20px system-ui,sans-serif;text-align:center;padding:24px"><div><div style="font-size:72px">🍰</div>' +
+      '<p>Kurulum yapım aşamasında.</p><p style="font-weight:600;font-size:16px">Yönetici: index.html içindeki GAS_URL satırına ' +
+      'Apps Script /exec adresini yazın.</p></div></div>';
+  } else {
+    document.getElementById('uygulama').src = GAS_URL + '?kabuk=1';
+  }
+
+  let kayit = null, yuklemeIstegi = null;
+  const yukleBtn = document.getElementById('yukleBtn');
+  const bildirimBtn = document.getElementById('bildirimBtn');
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(r => { kayit = r; }).catch(e => console.warn('SW kaydı başarısız', e));
+  }
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    yuklemeIstegi = e;
+    yukleBtn.hidden = false;
+  });
+  yukleBtn.addEventListener('click', async () => {
+    if (!yuklemeIstegi) return;
+    yuklemeIstegi.prompt();
+    await yuklemeIstegi.userChoice;
+    yuklemeIstegi = null;
+    yukleBtn.hidden = true;
+  });
+  window.addEventListener('appinstalled', () => { yukleBtn.hidden = true; });
+
+  bildirimBtn.addEventListener('click', async () => {
+    try { await Notification.requestPermission(); } catch (e) {}
+    bildirimBtn.hidden = true;
+  });
+
+  // GAS uygulamasından (iframe) gelen mesajlar
+  window.addEventListener('message', e => {
+    if (!/\.googleusercontent\.com$/.test(new URL(e.origin).hostname)) return; // sadece GAS içeriği
+    const v = e.data || {};
+    if (v.tip === 'NILDA_BILDIRIM_IZNI' && 'Notification' in window && Notification.permission === 'default') {
+      bildirimBtn.hidden = false; // İzin isteği kullanıcı dokunuşu gerektirir
+    }
+    if (v.tip === 'NILDA_BILDIRIM' && 'Notification' in window && Notification.permission === 'granted') {
+      const secenek = { body: String(v.metin || ''), icon: 'icon-192.png', tag: 'nilda-hatirlatma', requireInteraction: true, vibrate: [300, 150, 300] };
+      if (kayit) kayit.showNotification(String(v.baslik || 'Nilda Stok'), secenek);
+      else new Notification(String(v.baslik || 'Nilda Stok'), secenek);
+    }
+  });
+</script>
+</body>
+</html>
