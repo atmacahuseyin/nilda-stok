@@ -2,12 +2,12 @@
 <!--
   NİLDA STOK · PWA KABUĞU
   Google Apps Script sayfaları Google'ın iframe'i içinde çalıştığı için tarayıcı
-  onları "yüklenebilir uygulama" olarak tanımaz. Bu küçük kabuk (GitHub Pages,
-  Netlify vb. ücretsiz bir HTTPS adresinde yayınlanır) manifest + service worker
-  sağlar ve GAS uygulamasını tam ekran açar. Böylece:
+  onları "yüklenebilir uygulama" olarak tanımaz. Bu küçük kabuk manifest + service
+  worker sağlar ve uygulamayı tam ekran açar. Böylece:
     • Android/PC'de "Uygulamayı Yükle" çıkar, iPhone'da ana ekrana tam ekran eklenir
-    • 17:00 hatırlatması gerçek sistem bildirimi olarak gelebilir
-  TEK YAPILACAK: Aşağıdaki GAS_URL'yi kendi /exec adresinizle değiştirin.
+    • 17:00 / 22:00 hatırlatmaları gerçek sistem bildirimi olarak gelebilir
+  Yükleme ve bildirim izni, uygulamanın üstünde ince ve kapatılabilir bir şeritte
+  sunulur; uygulama kurulduktan sonra şerit görünmez.
 -->
 <html lang="tr">
 <head>
@@ -24,64 +24,89 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <style>
     html, body { margin: 0; height: 100%; background: #2C1A14; overflow: hidden; }
-    iframe { border: 0; display: block; width: 100%; height: 100vh; height: 100dvh; }
-    .yuzen { position: fixed; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 10;
-      font: 800 17px system-ui, sans-serif; padding: 14px 18px; border: 0; border-radius: 16px;
-      background: #D4A373; color: #2C1A14; box-shadow: 0 8px 24px rgba(0,0,0,.35); cursor: pointer; }
-    .yuzen + .yuzen { bottom: max(84px, calc(env(safe-area-inset-bottom) + 68px)); }
+    body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+    iframe { border: 0; display: block; width: 100%; flex: 1 1 auto; min-height: 0; }
+
+    /* Yükleme / bildirim şeridi: uygulamanın üstünde, içeriği örtmez */
+    .serit { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 14px;
+      padding-top: max(6px, env(safe-area-inset-top)); background: #3D261D; color: #FAEDCD;
+      font: 700 14px system-ui, -apple-system, 'Segoe UI', sans-serif; border-bottom: 1px solid rgba(250,237,205,.15); }
+    .serit[hidden] { display: none; }
+    .serit-metin { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .9; }
+    .serit button { font: 800 13px system-ui, -apple-system, 'Segoe UI', sans-serif; border: 0; border-radius: 99px; cursor: pointer;
+      padding: 7px 12px; background: #D4A373; color: #2C1A14; white-space: nowrap; }
+    .serit button[hidden] { display: none; }
+    .serit .kapat { background: transparent; color: #FAEDCD; padding: 6px 8px; font-size: 16px; line-height: 1; opacity: .75; }
+    .serit button:focus-visible { outline: 2px solid #FAEDCD; outline-offset: 2px; }
+    @media (max-width: 520px) { .serit-metin { display: none; } .serit { justify-content: flex-end; } }
   </style>
 </head>
 <body>
+  <div class="serit" id="serit" role="region" aria-label="Uygulama önerileri" hidden>
+    <span class="serit-metin" id="seritMetin">Daha rahat kullanım için</span>
+    <button type="button" id="yukleBtn" hidden>📲 Telefona yükle</button>
+    <button type="button" id="bildirimBtn" hidden>🔔 Hatırlatmaları aç</button>
+    <button type="button" class="kapat" id="seritKapat" aria-label="Şeridi kapat">✕</button>
+  </div>
   <iframe id="uygulama" title="Nilda Stok" allow="clipboard-write"></iframe>
-  <button id="yukleBtn" class="yuzen" hidden>📲 Uygulamayı Yükle</button>
-  <button id="bildirimBtn" class="yuzen" hidden>🔔 Bildirimlere İzin Ver</button>
 
 <script>
-  // ⬇️⬇️  KENDİ WEB UYGULAMASI ADRESİNİZ (Apps Script > Dağıt > Web uygulaması URL'si)
+  // Apps Script > Dağıt > Web uygulaması URL'si
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbyQRzZfspJcW0oPFJXh3lG2CVcKQ1pDH_r8SHtZ8kPYjQ_kWaPupGbyYYaWcm4V_nUpuA/exec';
+  document.getElementById('uygulama').src = GAS_URL + '?kabuk=1';
 
-  if (GAS_URL.indexOf('BURAYA_') > -1) {
-    document.body.innerHTML = '<div style="min-height:100vh;display:grid;place-items:center;background:#FAEDCD;color:#2C1A14;' +
-      'font:700 20px system-ui,sans-serif;text-align:center;padding:24px"><div><div style="font-size:72px">🍰</div>' +
-      '<p>Kurulum yapım aşamasında.</p><p style="font-weight:600;font-size:16px">Yönetici: index.html içindeki GAS_URL satırına ' +
-      'Apps Script /exec adresini yazın.</p></div></div>';
-  } else {
-    document.getElementById('uygulama').src = GAS_URL + '?kabuk=1';
-  }
-
-  let kayit = null, yuklemeIstegi = null;
+  const serit = document.getElementById('serit');
   const yukleBtn = document.getElementById('yukleBtn');
   const bildirimBtn = document.getElementById('bildirimBtn');
+  const KAPATMA_ANAHTARI = 'nilda_serit_kapatildi';
+  let kayit = null, yuklemeIstegi = null;
+
+  const kurulu = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const kapatildi = () => { try { return Date.now() - Number(localStorage.getItem(KAPATMA_ANAHTARI) || 0) < 7 * 864e5; } catch (e) { return false; } };
+
+  /** Şeridi yalnızca gösterecek bir öneri varsa ve kullanıcı son 7 günde kapatmadıysa gösterir. */
+  function seritGuncelle() {
+    yukleBtn.hidden = !(yuklemeIstegi && !kurulu());
+    serit.hidden = kapatildi() || (yukleBtn.hidden && bildirimBtn.hidden);
+  }
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(r => { kayit = r; }).catch(e => console.warn('SW kaydı başarısız', e));
   }
 
   window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
+    e.preventDefault();               // Tarayıcının kendi çubuğu yerine şeritteki buton
     yuklemeIstegi = e;
-    yukleBtn.hidden = false;
+    seritGuncelle();
   });
   yukleBtn.addEventListener('click', async () => {
     if (!yuklemeIstegi) return;
     yuklemeIstegi.prompt();
     await yuklemeIstegi.userChoice;
     yuklemeIstegi = null;
-    yukleBtn.hidden = true;
+    seritGuncelle();
   });
-  window.addEventListener('appinstalled', () => { yukleBtn.hidden = true; });
+  window.addEventListener('appinstalled', () => { yuklemeIstegi = null; seritGuncelle(); });
 
   bildirimBtn.addEventListener('click', async () => {
     try { await Notification.requestPermission(); } catch (e) {}
     bildirimBtn.hidden = true;
+    seritGuncelle();
+  });
+  document.getElementById('seritKapat').addEventListener('click', () => {
+    try { localStorage.setItem(KAPATMA_ANAHTARI, String(Date.now())); } catch (e) {}
+    serit.hidden = true;
   });
 
-  // GAS uygulamasından (iframe) gelen mesajlar
+  // Uygulamadan (Google iframe'i) gelen mesajlar
   window.addEventListener('message', e => {
-    if (!/\.googleusercontent\.com$/.test(new URL(e.origin).hostname)) return; // sadece GAS içeriği
+    let alan = '';
+    try { alan = new URL(e.origin).hostname; } catch (x) { return; }
+    if (!/\.googleusercontent\.com$/.test(alan)) return;   // sadece uygulamanın kendisi
     const v = e.data || {};
     if (v.tip === 'NILDA_BILDIRIM_IZNI' && 'Notification' in window && Notification.permission === 'default') {
-      bildirimBtn.hidden = false; // İzin isteği kullanıcı dokunuşu gerektirir
+      bildirimBtn.hidden = false;      // İzin isteği kullanıcı dokunuşu gerektirir
+      seritGuncelle();
     }
     if (v.tip === 'NILDA_BILDIRIM' && 'Notification' in window && Notification.permission === 'granted') {
       const secenek = { body: String(v.metin || ''), icon: 'icon-192.png', tag: 'nilda-hatirlatma', requireInteraction: true, vibrate: [300, 150, 300] };
